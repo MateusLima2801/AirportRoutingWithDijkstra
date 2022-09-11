@@ -16,6 +16,11 @@ public class ConnectorDB {
 
     public ConnectorDB()
     {
+       connect2DB();
+    }
+
+    public void connect2DB()
+    {
         try {
             conn = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
