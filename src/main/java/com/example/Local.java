@@ -13,8 +13,7 @@ public class Local
         Longi = longi;
     }     
 
-    //Haversine formula
-    //return: distance in km
+    //calcula a distância em km usando a Fórmula de Haversine
     public double calculateDistance(Local another)
     {
         double distance = 0;

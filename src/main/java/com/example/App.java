@@ -3,6 +3,14 @@ package com.example;
 import java.util.*;
 
 public class App {
+    final static int line_size = 50;
+    /*
+     * Conecta-se com o banco de dados para ler as informaçoes 
+     * dos aeroportos, apresenta menu para ler a rota da
+     * entrada-padrao, gera matriz de custos para as conexoes 
+     * entre dois desses aeroportos, calcula o caminho de
+     * custo minimo e registra-o no banco de dados.
+     */
     public static void main(String args[]) {
         ConnectorDB connectorDB = new ConnectorDB();
         //connectorDB.clearItineraries();
@@ -11,9 +19,9 @@ public class App {
         double[][] distances = createMatrixOfDistances(collection, route[0], route[1]);
         ArrayList<Integer> path = ShorterPath(route[0], route[1], distances, collection.size());
         connectorDB.registerItinerary(path);
-        System.out.printf("===============================================\n");
-        System.out.printf("=================== RESULT ====================\n");
-        System.out.printf("===============================================\n");
+        line("");
+        line("RESULT");
+        line("");
 
         for(int i = 0; i< path.size() -1; i++)
         {
@@ -29,6 +37,107 @@ public class App {
 
     }
 
+    /*
+     * Apresenta o menu de entrada e retorna a rota, o par
+     * (origin, destination).
+     */
+    public static int[] getRoute(ArrayList<Airport> collection) {
+        Scanner input = new Scanner(System.in);
+        String[] route_code = { " ", " " };
+        int[] route = { -1, -1 };
+        line("");
+        line("SHORTEST PATH WITH MORE THAN 1 STEP");
+        line("");
+        line("ORIGIN");
+        line("");
+        route_code[0] = getCode(collection, false, " ", input);
+        route[0] = getIndex(collection, route_code[0]);
+        line("");
+        line("DESTINATION");
+        line("");
+        route_code[1] = getCode(collection, true, route_code[0], input);
+        route[1] = getIndex(collection, route_code[1]);
+        input.close();
+
+        return route;
+    }
+
+    /*
+     * Com base no codigo do aeroporto extrai o indice
+     * deste na lista de aeroportos
+     */
+    public static int getIndex(ArrayList<Airport> collection, String code) {
+        for (Airport airport : collection) {
+            if (airport.Code.equals(code)) {
+                return collection.indexOf(airport);
+            }
+        }
+        return -1;
+    }
+
+    /*
+     * Apresenta as alternativas de aeroportos e extrai o codigo
+     * do aeroporto selecionado.
+     */
+    public static String getCode(ArrayList<Airport> collection, boolean isDestination, String origin, Scanner input) {
+
+        SortedSet<String> states = new TreeSet<String>();
+        Set<String> codes = new HashSet<String>();
+
+        for (Airport e : collection) {
+            states.add(e.State);
+        }
+
+        int i = 1;
+        for (String state : states) {
+            System.out.printf("(%d) %s\n", i, state);
+            i++;
+        }
+        line("");
+        boolean key;
+        int choice;
+        String state;
+        do {
+            key = false;
+            System.out.printf("Choose the state (number): ");
+            choice = input.nextInt();
+            if (choice < 1 || choice > collection.size()) {
+                System.out.printf("Invalid option!\n");
+                key = true;
+            }
+        } while (key);
+        
+        line("");
+        state = states.toArray(new String[states.size()])[--choice];
+
+        for (Airport a : collection) {
+            if (a.State == state) {
+                System.out.printf("(%s) %s\n", a.Code, a.City);
+                codes.add(a.Code);
+            }
+        }
+
+        String code;
+        do {
+            key = false;
+            System.out.printf("Choose the city (LLL): ");
+            input.reset();
+            code = input.next();
+
+            if (!codes.contains(code)) {
+                if (!isDestination || (isDestination && code != origin)) {
+                    System.out.printf("Invalid option!\n");
+                    key = true;
+                }
+            }
+        } while (key);
+        return code;
+    }
+
+    /*
+     * Cria matriz de adjacencia do grafo de aeroportos
+     * ponderada com o custo de cada aresta.
+     */
     public static double[][] createMatrixOfDistances(ArrayList<Airport> list, int origin, int destination) {
         double[][] distances = new double[list.size()][list.size()];
 
@@ -40,19 +149,23 @@ public class App {
             }
         }
 
-        // condition for non direct flights
+        // condição para evitar vôos diretos
         distances[origin][destination] = Double.POSITIVE_INFINITY;
         distances[destination][origin] = Double.POSITIVE_INFINITY;
 
         return distances;
     }
 
+    /*
+     * Calcula o caminho de menor custo entre origem
+     * e destino, baseado na matriz de custos.
+     */
     public static ArrayList<Integer> ShorterPath(int origin, int destination, double[][] costs, int size) {
-
         ArrayList<Integer> path = new ArrayList<Integer>();
         double[] estimatedCost = new double[size];
         Integer[] precedents = new Integer[size];
         boolean[] isClosed = new boolean[size];
+        
 
         Arrays.fill(estimatedCost, Double.POSITIVE_INFINITY);
         Arrays.fill(precedents, -1);
@@ -90,10 +203,14 @@ public class App {
         return path;
     }
 
+    /*
+     * Avalia qual o indice do no aberto (não analisado)
+     * de menor custo
+     */
     public static int smallerFalseIndex(double[] array, boolean[] isClosed, int size) {
         int smallerFalse = -1;
         int i = 0;
-        while (smallerFalse == -1 && i < size) {
+        while (i < size) {
             if (!isClosed[i++]) {
                 smallerFalse = i - 1;
                 break;
@@ -110,88 +227,18 @@ public class App {
         return smallerFalse;
     }
 
-    public static int[] getRoute(ArrayList<Airport> collection) {
-        Scanner input = new Scanner(System.in);
-        String[] route_code = { " ", " " };
-        int[] route = { -1, -1 };
-        System.out.printf("===============================================\n");
-        System.out.printf("===== SHORTEST PATH WITH MORE THAN 1 STEP =====\n");
-        System.out.printf("===============================================\n");
-        System.out.printf("==================== ORIGIN ===================\n");
-        System.out.printf("===============================================\n");
-        route_code[0] = getCode(collection, false, " ", input);
-        route[0] = getIndex(collection, route_code[0]);
-        System.out.printf("===============================================\n");
-        System.out.printf("================= DESTINATION =================\n");
-        System.out.printf("===============================================\n");
-        route_code[1] = getCode(collection, true, route_code[0], input);
-        route[1] = getIndex(collection, route_code[1]);
-        input.close();
-
-        return route;
-    }
-
-    public static int getIndex(ArrayList<Airport> collection, String code) {
-        for (Airport airport : collection) {
-            if (airport.Code.equals(code)) {
-                return collection.indexOf(airport);
-            }
-        }
-        return -1;
-    }
-
-    public static String getCode(ArrayList<Airport> collection, boolean isDestination, String origin, Scanner input) {
-
-        SortedSet<String> states = new TreeSet<String>();
-        Set<String> codes = new HashSet<String>();
-
-        for (Airport e : collection) {
-            states.add(e.State);
-        }
-
-        int i = 1;
-        for (String state : states) {
-            System.out.printf("(%d) %s\n", i, state);
-            i++;
-        }
-        System.out.printf("===============================================\n");
-        boolean key;
-        int choice;
-        String state;
-        do {
-            key = false;
-            System.out.printf("Choose the state (number): ");
-            choice = input.nextInt();
-            if (choice < 1 || choice > collection.size()) {
-                System.out.printf("Invalid option!\n");
-                key = true;
-            }
-        } while (key);
-        System.out.printf("===============================================\n");
-        state = states.toArray(new String[states.size()])[--choice];
-
-        for (Airport a : collection) {
-            if (a.State == state) {
-                System.out.printf("(%s) %s\n", a.Code, a.City);
-                codes.add(a.Code);
-            }
-        }
-
-        String code;
-        do {
-            key = false;
-            System.out.printf("Choose the city (LLL): ");
-            input.reset();
-            code = input.next();
-
-            if (!codes.contains(code)) {
-                if (!isDestination || (isDestination && code != origin)) {
-                    System.out.printf("Invalid option!\n");
-                    key = true;
-                }
-            }
-        } while (key);
-
-        return code;
+    /*
+     * Imprime linha de simbolos com texto ao meio 
+     */
+    public static void line(String text)
+    {
+        String symbol = "=";
+        if(text.length()%2 == 1) text += " ";
+        int span = (line_size - text.length() - 2)/2;
+        for(int i = 1; i<=span; i++) System.out.print(symbol);
+        if(text != "") System.out.print(" " + text + " ");
+        else System.out.print(symbol+symbol);
+        for(int i = 1; i<=span; i++) System.out.print(symbol);
+        System.out.println();
     }
 }

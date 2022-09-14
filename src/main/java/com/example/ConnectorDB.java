@@ -19,6 +19,7 @@ public class ConnectorDB {
        connect2DB();
     }
 
+    //conecta com o banco de dados
     public void connect2DB()
     {
         try {
@@ -28,6 +29,7 @@ public class ConnectorDB {
         }
     }
 
+    //le dados de aeroportos do banco para uma lista de 'Airport'
     public ArrayList<Airport> createAirportList() {
         ArrayList<Airport> list = new ArrayList<Airport>();
         try {
@@ -50,6 +52,8 @@ public class ConnectorDB {
         return list;
     }
 
+    //determina o proximo indice na tabela de itinerarios e chama 
+    //a funcao que os registra
     public void registerItinerary(ArrayList<Integer> path) {
         String table = "itineraries";
         int n_rows = 0;
@@ -57,19 +61,23 @@ public class ConnectorDB {
         ResultSet rs, rs2;
         Statement stmt;
         try {
+            //conta quantos registros ha na tabela
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rs = stmt.executeQuery("SELECT COUNT(*) FROM " + table);
             rs.next();
             n_rows = rs.getInt("COUNT(*)");
             rs.close();
+            //se nao houver registros o id sera 1
             if (n_rows == 0)
                 id_itinerary = 1;
+            //se ja houver registros captura o id do último e o incrementa
             else {
                 rs2 = stmt.executeQuery("SELECT id_itinerary FROM " + table);
                 rs2.last();
                 id_itinerary = rs2.getInt("id_itinerary") + 1;
                 rs2.close();
             }
+            //realiza o registro
             writeRows(id_itinerary, path);
             stmt.close();
         } catch (SQLException e) {
@@ -77,6 +85,7 @@ public class ConnectorDB {
         }
     }
 
+    //registra no banco de dados o resultado de uma pesquisa
     public void writeRows(int id, ArrayList<Integer> path) {
         int amtOfSteps = path.size() - 1;
         try {
@@ -95,6 +104,7 @@ public class ConnectorDB {
         }
     }
 
+    //esvazia a tabela de itinerarios 
     public void clearItineraries() {
         try {
             Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
