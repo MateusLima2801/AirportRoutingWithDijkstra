@@ -36,32 +36,7 @@ public class App {
         }
 
     }
-
-    /*
-     * Apresenta o menu de entrada e retorna a rota, o par
-     * (origin, destination).
-     */
-    public static int[] getRoute(ArrayList<Airport> collection) {
-        Scanner input = new Scanner(System.in);
-        String[] route_code = { " ", " " };
-        int[] route = { -1, -1 };
-        line("");
-        line("SHORTEST PATH WITH MORE THAN 1 STEP");
-        line("");
-        line("ORIGIN");
-        line("");
-        route_code[0] = getCode(collection, false, " ", input);
-        route[0] = getIndex(collection, route_code[0]);
-        line("");
-        line("DESTINATION");
-        line("");
-        route_code[1] = getCode(collection, true, route_code[0], input);
-        route[1] = getIndex(collection, route_code[1]);
-        input.close();
-
-        return route;
-    }
-
+    
     /*
      * Com base no codigo do aeroporto extrai o indice
      * deste na lista de aeroportos
@@ -83,6 +58,7 @@ public class App {
 
         SortedSet<String> states = new TreeSet<String>();
         Set<String> codes = new HashSet<String>();
+        String code = "XXX";
 
         for (Airport e : collection) {
             states.add(e.State);
@@ -93,45 +69,76 @@ public class App {
             System.out.printf("(%d) %s\n", i, state);
             i++;
         }
-        line("");
-        boolean key;
+        
+        boolean keys[] = { true, true, true };
         int choice;
         String state;
         do {
-            key = false;
-            System.out.printf("Choose the state (number): ");
-            choice = input.nextInt();
-            if (choice < 1 || choice > collection.size()) {
-                System.out.printf("Invalid option!\n");
-                key = true;
-            }
-        } while (key);
-        
-        line("");
-        state = states.toArray(new String[states.size()])[--choice];
-
-        for (Airport a : collection) {
-            if (a.State == state) {
-                System.out.printf("(%s) %s\n", a.Code, a.City);
-                codes.add(a.Code);
-            }
-        }
-
-        String code;
-        do {
-            key = false;
-            System.out.printf("Choose the city (LLL): ");
-            input.reset();
-            code = input.next();
-
-            if (!codes.contains(code)) {
-                if (!isDestination || (isDestination && code != origin)) {
+            do {
+                keys[0] = false;
+                line("");
+                System.out.printf("Choose the state (number): ");
+                choice = input.nextInt();
+                line("");
+                if (choice < 1 || choice > states.size()) {
                     System.out.printf("Invalid option!\n");
-                    key = true;
+                    keys[0] = true;
+                }
+            } while (keys[0]);
+
+            state = states.toArray(new String[states.size()])[--choice];
+
+            for (Airport a : collection) {
+                if (a.State.equals(state)) {
+                    System.out.printf("(%s) %s\n", a.Code, a.City);
+                    codes.add(a.Code);
                 }
             }
-        } while (key);
+
+            do {
+                keys[1] = false;
+                keys[2] = false;
+                line("");
+                System.out.printf("Choose the city (LLL): ");
+                input.reset();
+                code = input.next();
+                line("");
+
+                if (!codes.contains(code)) {
+                    System.out.printf("Invalid option!\n");
+                    keys[1] = true;
+                } else if (isDestination && code.equals(origin)) {
+                    System.out.printf("Invalid option!\n");
+                    keys[2] = true;
+                }
+            } while (keys[1]);
+        } while (keys[2]);
         return code;
+    }
+
+    /*
+     * Apresenta o menu de entrada e retorna a rota, o par
+     * (origin, destination).
+     */
+    public static int[] getRoute(ArrayList<Airport> collection) {
+        Scanner input = new Scanner(System.in);
+        String[] route_code = { " ", " " };
+        int[] route = { -1, -1 };
+        line("");
+        line("SHORTEST PATH WITH MORE THAN 1 STEP");
+        line("");
+        line("ORIGIN");
+        line("");
+        route_code[0] = getCode(collection, false, "", input);
+        route[0] = getIndex(collection, route_code[0]);
+        line("");
+        line("DESTINATION");
+        line("");
+        route_code[1] = getCode(collection, true, route_code[0], input);
+        route[1] = getIndex(collection, route_code[1]);
+        input.close();
+
+        return route;
     }
 
     /*
