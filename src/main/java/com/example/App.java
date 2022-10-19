@@ -1,9 +1,17 @@
 package com.example;
 
 import java.util.*;
+import javafx.util.*;
 
 public class App {
-    final static int line_size = 50;
+    final  int line_size = 50;
+    ArrayList<Airport> collection;
+
+    public App(ArrayList<Airport> collection_)
+    {
+        collection = collection_;
+    }
+
     /*
      * Conecta-se com o banco de dados para ler as informaçoes 
      * dos aeroportos, apresenta menu para ler a rota da
@@ -11,37 +19,47 @@ public class App {
      * entre dois desses aeroportos, calcula o caminho de
      * custo minimo e registra-o no banco de dados.
      */
-    public static void main(String args[]) {
-        ConnectorDB connectorDB = new ConnectorDB();
-        //connectorDB.clearItineraries();
-        ArrayList<Airport> collection = connectorDB.createAirportList();
-        int[] route = getRoute(collection);
-        double[][] distances = createMatrixOfDistances(collection, route[0], route[1]);
-        ArrayList<Integer> path = ShorterPath(route[0], route[1], distances, collection.size());
-        connectorDB.registerItinerary(path);
-        line("");
-        line("RESULT");
-        line("");
+    public double GetShortestRouteDistance(Pair<int> route) {
+        double[][] distances = createMatrixOfDistances(collection, route.getKey(), route.getValue());
+        ArrayList<Integer> path = ShorterPath(route.getKey(), route.getValue(), distances, collection.size());
+        //connectorDB.registerItinerary(path);
+        return calculateTotalDistance(path, distances); 
+        // line("");
+        // line("RESULT");
+        // line("");
 
-        for(int i = 0; i< path.size() -1; i++)
-        {
-            System.out.printf("[%s] %s (%s) -> [%s] %s (%s)\n",
-            collection.get(path.get(i)).Code,
-            collection.get(path.get(i)).City,
-            collection.get(path.get(i)).State,
-            collection.get(path.get(i+1)).Code,
-            collection.get(path.get(i+1)).City,
-            collection.get(path.get(i+1)).State
-        );
+        // for(int i = 0; i< path.size() -1; i++)
+        // {
+        //     System.out.printf("[%s] %s (%s) -> [%s] %s (%s)\n",
+        //     collection.get(path.get(i)).Code,
+        //     collection.get(path.get(i)).City,
+        //     collection.get(path.get(i)).State,
+        //     collection.get(path.get(i+1)).Code,
+        //     collection.get(path.get(i+1)).City,
+        //     collection.get(path.get(i+1)).State
+        // );
+
+
+
         }
 
     }
     
+    public  double calculateTotalDistance(ArrayList<Integer> path, double[][] distances)
+    {
+        double totalDistance = 0.;
+        for(int i = 0; i<path.length()-1; i++)
+        {
+            totalDistance += distances[path.get(i)][path.get(i+1)];
+        }
+        return totalDistance;
+    }
+
     /*
      * Com base no codigo do aeroporto extrai o indice
      * deste na lista de aeroportos
      */
-    public static int getIndex(ArrayList<Airport> collection, String code) {
+    public  int getIndex(ArrayList<Airport> collection, String code) {
         for (Airport airport : collection) {
             if (airport.Code.equals(code)) {
                 return collection.indexOf(airport);
@@ -54,7 +72,7 @@ public class App {
      * Apresenta as alternativas de aeroportos e extrai o codigo
      * do aeroporto selecionado.
      */
-    public static String getCode(ArrayList<Airport> collection, boolean isDestination, String origin, Scanner input) {
+    public  String getCode(ArrayList<Airport> collection, boolean isDestination, String origin, Scanner input) {
 
         SortedSet<String> states = new TreeSet<String>();
         Set<String> codes = new HashSet<String>();
@@ -120,7 +138,7 @@ public class App {
      * Apresenta o menu de entrada e retorna a rota, o par
      * (origin, destination).
      */
-    public static int[] getRoute(ArrayList<Airport> collection) {
+    public  int[] getRoute(ArrayList<Airport> collection) {
         Scanner input = new Scanner(System.in);
         String[] route_code = { " ", " " };
         int[] route = { -1, -1 };
@@ -145,7 +163,7 @@ public class App {
      * Cria matriz de adjacencia do grafo de aeroportos
      * ponderada com o custo de cada aresta.
      */
-    public static double[][] createMatrixOfDistances(ArrayList<Airport> list, int origin, int destination) {
+    public  double[][] createMatrixOfDistances(ArrayList<Airport> list, int origin, int destination) {
         double[][] distances = new double[list.size()][list.size()];
 
         for (int i = 0; i < list.size(); i++) {
@@ -167,7 +185,7 @@ public class App {
      * Calcula o caminho de menor custo entre origem
      * e destino, baseado na matriz de custos.
      */
-    public static ArrayList<Integer> ShorterPath(int origin, int destination, double[][] costs, int size) {
+    public  ArrayList<Integer> ShorterPath(int origin, int destination, double[][] costs, int size) {
         ArrayList<Integer> path = new ArrayList<Integer>();
         double[] estimatedCost = new double[size];
         Integer[] precedents = new Integer[size];
@@ -214,7 +232,7 @@ public class App {
      * Avalia qual o indice do no aberto (não analisado)
      * de menor custo
      */
-    public static int smallerFalseIndex(double[] array, boolean[] isClosed, int size) {
+    public  int smallerFalseIndex(double[] array, boolean[] isClosed, int size) {
         int smallerFalse = -1;
         int i = 0;
         while (i < size) {
@@ -237,7 +255,7 @@ public class App {
     /*
      * Imprime linha de simbolos com texto ao meio 
      */
-    public static void line(String text)
+    public  void line(String text)
     {
         String symbol = "=";
         if(text.length()%2 == 1) text += " ";
